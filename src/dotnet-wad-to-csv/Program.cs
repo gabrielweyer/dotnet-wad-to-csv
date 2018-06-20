@@ -11,7 +11,8 @@ namespace DotNet.WadToCsv
     class Program
     {
         [Required]
-        [Option(ShortName = "l", LongName = "last", Description = "ISO 8601 duration")]
+        [Option(ShortName = "l", LongName = "last",
+            Description = "ISO 8601 duration, substracted from the current UTC time")]
         public string Last { get; }
 
         [Required]
@@ -66,7 +67,7 @@ namespace DotNet.WadToCsv
 
             var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
             var tableClient = storageAccount.CreateCloudTableClient();
-            var table =  tableClient.GetTableReference("WADLogsTable");
+            var table = tableClient.GetTableReference("WADLogsTable");
 
             if (!await table.ExistsAsync())
             {
@@ -77,9 +78,10 @@ namespace DotNet.WadToCsv
 
             var query = new TableQuery<DynamicTableEntity>()
                 .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.GreaterThan, since))
-                .Select(new[] { "PreciseTimeStamp", "Level", "Message" });
+                .Select(new[] {"PreciseTimeStamp", "Level", "Message"});
 
-            EntityResolver<WadLogs> resolver = (pk, rk, ts, props, etag) => new WadLogs {
+            EntityResolver<WadLogs> resolver = (pk, rk, ts, props, etag) => new WadLogs
+            {
                 Generated = props["PreciseTimeStamp"].DateTime.GetValueOrDefault(),
                 Level = ParseLevel(props["Level"].Int32Value),
                 Message = props["Message"].StringValue,
@@ -102,7 +104,8 @@ namespace DotNet.WadToCsv
                             continue;
                         }
 
-                        outputFile.WriteLine($"{FormatGenerated(log.Generated)},{log.Level},{FormatMessage(log.Message)}");
+                        outputFile.WriteLine(
+                            $"{FormatGenerated(log.Generated)},{log.Level},{FormatMessage(log.Message)}");
                     }
 
                     continuationToken = result.ContinuationToken;
