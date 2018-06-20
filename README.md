@@ -4,6 +4,14 @@
 
 Only `MessageEvents` starting with `EventName="MessageEvent" Message="` will be parsed and written to the output file. This is to discard `MessageEvents` such as this one `EventName="DirectWrite" Message="Getting "TopSecret" from ServiceRuntime: PASS (<your-top-secret-value>)."` (refer to this [GitHub issue][github-issue] for context).
 
+| Package | Release | Pre-release |
+| --- | --- | --- |
+| `dotnet-wad-to-csv` | [![NuGet][nuget-tool-badge]][nuget-tool-command] | [![MyGet][myget-tool-badge]][myget-tool-command] |
+
+| CI | Status | Platform(s) | Framework(s) |
+| --- | --- | --- | --- |
+| [AppVeyor][app-veyor] | [![Build Status][app-veyor-shield]][app-veyor] | `Windows` | `netcoreapp2.1` |
+
 ## Installation
 
 ```posh
@@ -42,3 +50,9 @@ Generated,Level,Message
 [dotnet-global-tools]: https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools
 [sas]: https://docs.microsoft.com/en-us/azure/storage/common/storage-dotnet-shared-access-signature-part-1
 [github-issue]: https://github.com/Azure/azure-sdk-for-net/issues/653
+[app-veyor]: https://ci.appveyor.com/project/GabrielWeyer/dotnet-wad-to-csv
+[app-veyor-shield]: https://img.shields.io/appveyor/ci/gabrielweyer/dotnet-wad-to-csv/master.svg?label=AppVeyor&style=flat-square
+[nuget-tool-badge]: https://img.shields.io/nuget/v/dotnet-wad-to-csv.svg?label=NuGet&style=flat-square
+[nuget-tool-command]: https://www.nuget.org/packages/dotnet-wad-to-csv
+[myget-tool-badge]: https://img.shields.io/myget/gabrielweyer-pre-release/v/dotnet-wad-to-csv.svg?label=MyGet&style=flat-square
+[myget-tool-command]: https://www.myget.org/feed/gabrielweyer-pre-release/package/nuget/dotnet-wad-to-csv
