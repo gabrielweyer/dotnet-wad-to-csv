@@ -10,8 +10,9 @@ namespace DotNet.WadToCsv
 {
     class Program
     {
-        [Option(ShortName = "d", LongName = "duration", Description = "ISO 8601 duration")]
-        public string Duration { get; }
+        [Required]
+        [Option(ShortName = "l", LongName = "last", Description = "ISO 8601 duration")]
+        public string Last { get; }
 
         [Required]
         [Option(ShortName = "o", LongName = "output", Description = "Output file path")]
@@ -21,11 +22,43 @@ namespace DotNet.WadToCsv
 
         private async Task OnExecuteAsync()
         {
-            // TODO: test validity of output file path
-
             var fullPath = Path.GetFullPath(OutputFilePath);
 
-            // TODO: default duration if missing
+            try
+            {
+                File.WriteAllText(fullPath, "q");
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("The output file path is not valid.");
+                Console.WriteLine();
+                Console.WriteLine($"\tException: {e.GetType()}");
+                Console.WriteLine($"\tMessage: {e.Message}");
+                return;
+            }
+            finally
+            {
+                Console.ResetColor();
+            }
+
+            TimeSpan last;
+
+            try
+            {
+                last = Last.ParseIso8601TimeDuration();
+            }
+            catch (FormatException)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("The duration is not a valid ISO 8601 time duration. ");
+                Console.WriteLine("Refer to the time component of https://en.wikipedia.org/wiki/ISO_8601#Durations");
+                return;
+            }
+            finally
+            {
+                Console.ResetColor();
+            }
 
             // TODO: cancellation token
 
@@ -40,9 +73,7 @@ namespace DotNet.WadToCsv
                 throw new InvalidOperationException("The table 'WADLogsTable' does not exist in this storage account.");
             }
 
-            // TODO: compute timestamp
-
-            const string since = "0636649120905773478";
+            var since = $"0{(DateTime.UtcNow - last).Ticks}";
 
             var query = new TableQuery<DynamicTableEntity>()
                 .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.GreaterThan, since))
