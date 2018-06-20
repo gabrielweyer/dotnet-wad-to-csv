@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.WindowsAzure.Storage;
@@ -19,10 +20,15 @@ namespace DotNet.WadToCsv
         [Option(ShortName = "o", LongName = "output", Description = "Output file path")]
         public string OutputFilePath { get; }
 
+        private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
+        private static readonly CancellationToken Token = Cts.Token;
+
         static Task<int> Main(string[] args) => CommandLineApplication.ExecuteAsync<Program>(args);
 
         private async Task OnExecuteAsync()
         {
+            Console.CancelKeyPress += ConsoleOnCancelKeyPress;
+
             var fullPath = Path.GetFullPath(OutputFilePath);
 
             try
@@ -61,15 +67,13 @@ namespace DotNet.WadToCsv
                 Console.ResetColor();
             }
 
-            // TODO: cancellation token
-
             var storageConnectionString = Prompt.GetPassword("SAS", ConsoleColor.White, ConsoleColor.DarkBlue);
 
             var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
             var tableClient = storageAccount.CreateCloudTableClient();
             var table = tableClient.GetTableReference("WADLogsTable");
 
-            if (!await table.ExistsAsync())
+            if (!await table.ExistsAsync(null, null, Token))
             {
                 throw new InvalidOperationException("The table 'WADLogsTable' does not exist in this storage account.");
             }
@@ -95,7 +99,7 @@ namespace DotNet.WadToCsv
 
                 do
                 {
-                    var result = await table.ExecuteQuerySegmentedAsync(query, resolver, continuationToken);
+                    var result = await table.ExecuteQuerySegmentedAsync(query, resolver, continuationToken, null, null, Token);
 
                     foreach (var log in result.Results)
                     {
@@ -142,6 +146,13 @@ namespace DotNet.WadToCsv
             {
                 return generated.ToString("yyyy-MM-ddTHH:mm:ss.fffT");
             }
+        }
+
+        private static void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs consoleCancelEventArgs)
+        {
+            Console.WriteLine("ConsoleCancelEvent received => Cancelling token");
+            consoleCancelEventArgs.Cancel = true;
+            Cts.Cancel();
         }
 
         class WadLogs
