@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNet.WadToCsv.Validation;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -17,6 +18,7 @@ namespace DotNet.WadToCsv
         public string Last { get; }
 
         [Required]
+        [WritableFile]
         [Option(ShortName = "o", LongName = "output", Description = "Output file path")]
         public string OutputFilePath { get; }
 
@@ -27,27 +29,7 @@ namespace DotNet.WadToCsv
 
         private async Task OnExecuteAsync()
         {
-            Console.CancelKeyPress += ConsoleOnCancelKeyPress;
-
             var fullPath = Path.GetFullPath(OutputFilePath);
-
-            try
-            {
-                File.WriteAllText(fullPath, "q");
-            }
-            catch (Exception e)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("The output file path is not valid.");
-                Console.WriteLine();
-                Console.WriteLine($"\tException: {e.GetType()}");
-                Console.WriteLine($"\tMessage: {e.Message}");
-                return;
-            }
-            finally
-            {
-                Console.ResetColor();
-            }
 
             TimeSpan last;
 
@@ -68,6 +50,8 @@ namespace DotNet.WadToCsv
             }
 
             var storageConnectionString = Prompt.GetPassword("SAS", ConsoleColor.White, ConsoleColor.DarkBlue);
+
+            Console.CancelKeyPress += ConsoleOnCancelKeyPress;
 
             var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
             var tableClient = storageAccount.CreateCloudTableClient();
