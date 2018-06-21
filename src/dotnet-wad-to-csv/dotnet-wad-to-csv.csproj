@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.4" />
+    <PackageReference Include="Serilog.Enrichers.Demystify" Version="0.1.0-dev-00016" />
     <PackageReference Include="WindowsAzure.Storage" Version="9.2.0" />
   </ItemGroup>
 </Project>

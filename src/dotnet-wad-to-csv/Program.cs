@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,47 +42,60 @@ namespace DotNet.WadToCsv
             var tableClient = storageAccount.CreateCloudTableClient();
             var table = tableClient.GetTableReference("WADLogsTable");
 
-            if (!await table.ExistsAsync(null, null, Token))
+            try
             {
-                throw new InvalidOperationException("The table 'WADLogsTable' does not exist in this storage account.");
-            }
 
-            var since = $"0{(DateTime.UtcNow - last).Ticks}";
-
-            var query = new TableQuery<DynamicTableEntity>()
-                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.GreaterThan, since))
-                .Select(new[] {"PreciseTimeStamp", "Level", "Message"});
-
-            EntityResolver<WadLogs> resolver = (pk, rk, ts, props, etag) => new WadLogs
-            {
-                Generated = props["PreciseTimeStamp"].DateTime.GetValueOrDefault(),
-                Level = ParseLevel(props["Level"].Int32Value),
-                Message = props["Message"].StringValue,
-            };
-
-            TableContinuationToken continuationToken = null;
-
-            using (var outputFile = File.CreateText(fullPath))
-            {
-                outputFile.WriteLine("Generated,Level,Message");
-
-                do
+                if (!await table.ExistsAsync(null, null, Token))
                 {
-                    var result = await table.ExecuteQuerySegmentedAsync(query, resolver, continuationToken, null, null, Token);
+                    throw new InvalidOperationException(
+                        "The table 'WADLogsTable' does not exist in this storage account.");
+                }
 
-                    foreach (var log in result.Results)
+                var since = $"0{(DateTime.UtcNow - last).Ticks}";
+
+                var query = new TableQuery<DynamicTableEntity>()
+                    .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.GreaterThan, since))
+                    .Select(new[] {"PreciseTimeStamp", "Level", "Message"});
+
+                EntityResolver<WadLogs> resolver = (pk, rk, ts, props, etag) => new WadLogs
+                {
+                    Generated = props["PreciseTimeStamp"].DateTime.GetValueOrDefault(),
+                    Level = ParseLevel(props["Level"].Int32Value),
+                    Message = props["Message"].StringValue,
+                };
+
+                TableContinuationToken continuationToken = null;
+
+                using (var outputFile = File.CreateText(fullPath))
+                {
+                    outputFile.WriteLine("Generated,Level,Message");
+
+                    do
                     {
-                        if (log.Message.Length <= 12 || log.Message[11] != 'M')
+                        var result = await table.ExecuteQuerySegmentedAsync(query, resolver, continuationToken, null,
+                            null, Token);
+
+                        foreach (var log in result.Results)
                         {
-                            continue;
+                            if (log.Message.Length <= 12 || log.Message[11] != 'M')
+                            {
+                                continue;
+                            }
+
+                            outputFile.WriteLine(
+                                $"{FormatGenerated(log.Generated)},{log.Level},{FormatMessage(log.Message)}");
                         }
 
-                        outputFile.WriteLine(
-                            $"{FormatGenerated(log.Generated)},{log.Level},{FormatMessage(log.Message)}");
-                    }
-
-                    continuationToken = result.ContinuationToken;
-                } while (continuationToken != null);
+                        continuationToken = result.ContinuationToken;
+                    } while (continuationToken != null);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: {0}", e.GetType());
+                Console.WriteLine("Message: {0}", e.Message);
+                Console.WriteLine("StackTrace:");
+                Console.WriteLine(e.Demystify().StackTrace);
             }
 
             string ParseLevel(int? level)
