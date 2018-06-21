@@ -13,6 +13,7 @@ namespace DotNet.WadToCsv
     class Program
     {
         [Required]
+        [Iso8601TimeDuration]
         [Option(ShortName = "l", LongName = "last",
             Description = "ISO 8601 duration, substracted from the current UTC time")]
         public string Last { get; }
@@ -30,24 +31,7 @@ namespace DotNet.WadToCsv
         private async Task OnExecuteAsync()
         {
             var fullPath = Path.GetFullPath(OutputFilePath);
-
-            TimeSpan last;
-
-            try
-            {
-                last = Last.ParseIso8601TimeDuration();
-            }
-            catch (FormatException)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("The duration is not a valid ISO 8601 time duration. ");
-                Console.WriteLine("Refer to the time component of https://en.wikipedia.org/wiki/ISO_8601#Durations");
-                return;
-            }
-            finally
-            {
-                Console.ResetColor();
-            }
+            var last = Last.ParseIso8601TimeDuration();
 
             var storageConnectionString = Prompt.GetPassword("SAS", ConsoleColor.White, ConsoleColor.DarkBlue);
 
