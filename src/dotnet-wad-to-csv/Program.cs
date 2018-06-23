@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNet.WadToCsv.Models;
 using DotNet.WadToCsv.Validation;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.WindowsAzure.Storage;
@@ -44,7 +45,6 @@ namespace DotNet.WadToCsv
 
             try
             {
-
                 if (!await table.ExistsAsync(null, null, Token))
                 {
                     throw new InvalidOperationException(
@@ -60,7 +60,7 @@ namespace DotNet.WadToCsv
                 EntityResolver<WadLogs> resolver = (pk, rk, ts, props, etag) => new WadLogs
                 {
                     Generated = props["PreciseTimeStamp"].DateTime.GetValueOrDefault(),
-                    Level = ParseLevel(props["Level"].Int32Value),
+                    Level = props["Level"].Int32Value.GetValueOrDefault(),
                     Message = props["Message"].StringValue,
                 };
 
@@ -77,13 +77,7 @@ namespace DotNet.WadToCsv
 
                         foreach (var log in result.Results)
                         {
-                            if (log.Message.Length <= 12 || log.Message[11] != 'M')
-                            {
-                                continue;
-                            }
-
-                            outputFile.WriteLine(
-                                $"{FormatGenerated(log.Generated)},{log.Level},{FormatMessage(log.Message)}");
+                            outputFile.WriteLine(log);
                         }
 
                         continuationToken = result.ContinuationToken;
@@ -97,37 +91,6 @@ namespace DotNet.WadToCsv
                 Console.WriteLine("StackTrace:");
                 Console.WriteLine(e.Demystify().StackTrace);
             }
-
-            string ParseLevel(int? level)
-            {
-                // TODO: investigate why Warning is 3 and Information is 4
-
-                switch (level)
-                {
-                    case 1:
-                        return "Critical";
-                    case 2:
-                        return "Error";
-                    case 4:
-                        return "Information";
-                    case 3:
-                        return "Warning";
-                    case 5:
-                        return "Verbose";
-                }
-
-                return "Undefined";
-            }
-
-            string FormatMessage(string message)
-            {
-                return message.Substring(33, message.Length - 23 - 33);
-            }
-
-            string FormatGenerated(DateTime generated)
-            {
-                return generated.ToString("yyyy-MM-ddTHH:mm:ss.fffT");
-            }
         }
 
         private static void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs consoleCancelEventArgs)
@@ -135,13 +98,6 @@ namespace DotNet.WadToCsv
             Console.WriteLine("ConsoleCancelEvent received => Cancelling token");
             consoleCancelEventArgs.Cancel = true;
             Cts.Cancel();
-        }
-
-        class WadLogs
-        {
-            public DateTime Generated { get; set; }
-            public string Message { get; set; }
-            public string Level { get; set; }
         }
     }
 }
