@@ -12,15 +12,24 @@ namespace DotNet.WadToCsv
 {
     class Program
     {
-        [Required]
         [Iso8601TimeDuration]
         [Option(ShortName = "l", LongName = "last",
             Description = "ISO 8601 duration, substracted from the current UTC time")]
         public string Last { get; }
 
+        [Iso8601DateTime]
+        [Option(ShortName = "f", LongName = "from",
+            Description = "ISO 8601 date time in your local time, time can be omitted")]
+        public string From { get; }
+
+        [Iso8601DateTime]
+        [Option(ShortName = "t", LongName = "to",
+            Description = "ISO 8601 date time in your local time, time can be omitted")]
+        public string To { get; }
+
         [Required]
         [WritableFile]
-        [Option(ShortName = "o", LongName = "output", Description = "Output file path")]
+        [Option(ShortName = "o", LongName = "output", Description = "Required. Output file path")]
         public string OutputFilePath { get; }
 
         private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
@@ -31,7 +40,14 @@ namespace DotNet.WadToCsv
         private async Task OnExecuteAsync()
         {
             var fullPath = Path.GetFullPath(OutputFilePath);
-            var last = Last.ParseIso8601TimeDuration();
+
+            var getRangeResult = RangeParser.TryGetRange(Last, From, To, out var range);
+
+            if (!string.IsNullOrEmpty(getRangeResult?.ErrorMessage))
+            {
+                WriteError(getRangeResult.ErrorMessage);
+                return;
+            }
 
             var sas = Prompt.GetPassword("Shared Access Signature:", ConsoleColor.White, ConsoleColor.DarkBlue);
 
@@ -39,12 +55,10 @@ namespace DotNet.WadToCsv
 
             try
             {
-                var from = DateTime.UtcNow - last;
-
-                WriteLine($"Querying storage account '{GetStorageAccountName(sas)}' from '{from:u}' to 'Now'");
+                WriteDebug($"Querying storage account '{GetStorageAccountName(sas)}' from {range}");
 
                 var repository = new Repository(sas);
-                var logs = await repository.GetLogsAsync(from, Token);
+                var logs = await repository.GetLogsAsync(range, Token);
 
                 using (var outputFile = File.CreateText(fullPath))
                 {
@@ -56,7 +70,7 @@ namespace DotNet.WadToCsv
                 }
 
                 Console.WriteLine();
-                WriteLine("Done");
+                WriteDebug("Done");
             }
             catch (Exception e)
             {
@@ -72,9 +86,16 @@ namespace DotNet.WadToCsv
             }
         }
 
-        private static void WriteLine(string line)
+        private static void WriteDebug(string line)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine(line);
+            Console.ResetColor();
+        }
+
+        private static void WriteError(string line)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(line);
             Console.ResetColor();
         }

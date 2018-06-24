@@ -27,13 +27,31 @@ namespace DotNet.WadToCsv.Services
             _table = tableClient.GetTableReference("WADLogsTable");
         }
 
-        public async Task<List<WadLogs>> GetLogsAsync(DateTime from, CancellationToken token)
+        public async Task<List<WadLogs>> GetLogsAsync(Range range, CancellationToken token)
         {
-            var fromAsPartitionKey = $"0{from.Ticks}";
+            var fromAsPartitionKey = FormatAsPartitionKey(range.From);
+
+            var fromFilter = TableQuery.GenerateFilterCondition(
+                "PartitionKey",
+                QueryComparisons.GreaterThan,
+                fromAsPartitionKey);
+
+            var filter = fromFilter;
+
+            if (range.To.HasValue)
+            {
+                var toAsPartitionKey = FormatAsPartitionKey(range.To.Value);
+
+                var toFilter = TableQuery.GenerateFilterCondition(
+                    "PartitionKey",
+                    QueryComparisons.LessThanOrEqual,
+                    toAsPartitionKey);
+
+                filter = TableQuery.CombineFilters(fromFilter, TableOperators.And, toFilter);
+            }
 
             var query = new TableQuery<DynamicTableEntity>()
-                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.GreaterThan,
-                    fromAsPartitionKey))
+                .Where(filter)
                 .Select(new[] {"PreciseTimeStamp", "Level", "Message"});
 
             TableContinuationToken continuationToken = null;
@@ -59,6 +77,11 @@ namespace DotNet.WadToCsv.Services
             }
 
             return logs;
+        }
+
+        private static string FormatAsPartitionKey(DateTime dateTime)
+        {
+            return $"0{dateTime.Ticks}";
         }
     }
 }
