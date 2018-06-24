@@ -19,7 +19,7 @@ namespace DotNet.WadToCsv.Tests
 
             // Assert
 
-            var expectedParsedDate = new DateTime(2018, 6, 24, 11, 3, 5, DateTimeKind.Utc);
+            var expectedParsedDate = new DateTime(2018, 6, 24, 21, 3, 5, DateTimeKind.Utc);
 
             Assert.True(actualSuccess);
             actualParsedDate.Should().Be(expectedParsedDate);
@@ -38,7 +38,7 @@ namespace DotNet.WadToCsv.Tests
 
             // Assert
 
-            var expectedParsedDate = new DateTime(2018, 6, 23, 14, 0, 0, DateTimeKind.Utc);
+            var expectedParsedDate = new DateTime(2018, 6, 24, 0, 0, 0, DateTimeKind.Utc);
 
             Assert.True(actualSuccess);
             actualParsedDate.Should().Be(expectedParsedDate);
@@ -57,7 +57,7 @@ namespace DotNet.WadToCsv.Tests
 
             // Assert
 
-            var expectedParsedDate = new DateTime(2018, 6, 24, 5, 0, 0, DateTimeKind.Utc);
+            var expectedParsedDate = new DateTime(2018, 6, 24, 15, 0, 0, DateTimeKind.Utc);
 
             Assert.True(actualSuccess);
             actualParsedDate.Should().Be(expectedParsedDate);

@@ -19,12 +19,12 @@ namespace DotNet.WadToCsv
 
         [Iso8601DateTime]
         [Option(ShortName = "f", LongName = "from",
-            Description = "ISO 8601 date time in your local time, time can be omitted")]
+            Description = "ISO 8601 date time in UTC, time can be omitted")]
         public string From { get; }
 
         [Iso8601DateTime]
         [Option(ShortName = "t", LongName = "to",
-            Description = "ISO 8601 date time in your local time, time can be omitted")]
+            Description = "ISO 8601 date time in UTC, time can be omitted")]
         public string To { get; }
 
         [Required]

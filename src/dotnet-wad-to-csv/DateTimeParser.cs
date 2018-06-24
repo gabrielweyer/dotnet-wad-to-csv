@@ -11,7 +11,7 @@ namespace DotNet.WadToCsv
                 input,
                 new[] { "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-ddTHH", "yyyy-MM-dd" },
                 DateTimeFormatInfo.InvariantInfo,
-                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeLocal,
+                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
                 out output);
         }
     }

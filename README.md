@@ -36,10 +36,10 @@ The tool will attempt to obfuscate settings that have been logged due to this [i
   - `5M`: get all the logs for the last `5` **minutes**
   - `1H`: get all the logs for the last `1` **hour**
   - You can combine them too if you feel like it, i.e. `2H3M5S` would get all the logs for the last `7385` **seconds**
-- `<from>`: `ISO 8601 date time` expressed in local time. Cannot be combined with `<last>`.
+- `<from>`: `ISO 8601 date time` expressed in `UTC`. Cannot be combined with `<last>`, can be combined with `<to>`.
   - Valid date time: `2018-06-24T23:12:15`
   - The time component can be omitted: `2018-06-24`
-- `<to>`: `ISO 8601 date time` expressed in local time. Must be be combined with `<from>`.
+- `<to>`: `ISO 8601 date time` expressed in `UTC`. Must be be combined with `<from>`.
 - `<output-file-path>`: where you wish to write the output file, does not need to exist but should be valid. If a file exists with the same name it will be replaced.
 
 The tool will prompt you for a [Shared Access Signature][sas] so that it doesn't get saved to your `CLI` history. I recommend you restrict the `SAS` to:
