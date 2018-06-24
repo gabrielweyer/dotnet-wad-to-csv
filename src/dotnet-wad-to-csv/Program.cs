@@ -1,23 +1,39 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using DotNet.WadToCsv.Services;
+using DotNet.WadToCsv.Validation;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace DotNet.WadToCsv
 {
     class Program
     {
-        [Required]
+        [Iso8601TimeDuration]
         [Option(ShortName = "l", LongName = "last",
             Description = "ISO 8601 duration, substracted from the current UTC time")]
         public string Last { get; }
 
+        [Iso8601DateTime]
+        [Option(ShortName = "f", LongName = "from",
+            Description = "ISO 8601 date time in UTC, time can be omitted")]
+        public string From { get; }
+
+        [Iso8601DateTime]
+        [Option(ShortName = "t", LongName = "to",
+            Description = "ISO 8601 date time in UTC, time can be omitted")]
+        public string To { get; }
+
         [Required]
-        [Option(ShortName = "o", LongName = "output", Description = "Output file path")]
+        [WritableFile]
+        [Option(ShortName = "o", LongName = "output", Description = "Required. Output file path")]
         public string OutputFilePath { get; }
+
+        private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
+        private static readonly CancellationToken Token = Cts.Token;
 
         static Task<int> Main(string[] args) => CommandLineApplication.ExecuteAsync<Program>(args);
 
@@ -25,130 +41,83 @@ namespace DotNet.WadToCsv
         {
             var fullPath = Path.GetFullPath(OutputFilePath);
 
+            var getRangeResult = RangeParser.TryGetRange(Last, From, To, out var range);
+
+            if (!string.IsNullOrEmpty(getRangeResult?.ErrorMessage))
+            {
+                WriteError(getRangeResult.ErrorMessage);
+                return;
+            }
+
+            var sas = Prompt.GetPassword("Shared Access Signature:", ConsoleColor.White, ConsoleColor.DarkBlue);
+
+            Console.CancelKeyPress += ConsoleOnCancelKeyPress;
+
             try
             {
-                File.WriteAllText(fullPath, "q");
+                WriteDebug($"Querying storage account '{GetStorageAccountName(sas)}' from {range}");
+
+                var repository = new Repository(sas);
+                var logs = await repository.GetLogsAsync(range, Token);
+
+                using (var outputFile = File.CreateText(fullPath))
+                {
+                    outputFile.WriteLine("Generated,Level,Message");
+                    foreach (var log in logs)
+                    {
+                        outputFile.WriteLine(log);
+                    }
+                }
+
+                Console.WriteLine();
+                WriteDebug("Done");
             }
             catch (Exception e)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("The output file path is not valid.");
-                Console.WriteLine();
-                Console.WriteLine($"\tException: {e.GetType()}");
-                Console.WriteLine($"\tMessage: {e.Message}");
-                return;
+                Console.WriteLine("Exception: {0}", e.GetType());
+                Console.WriteLine("Message: {0}", e.Message);
+                Console.WriteLine("StackTrace:");
+                Console.WriteLine(e.Demystify().StackTrace);
             }
             finally
             {
                 Console.ResetColor();
-            }
-
-            TimeSpan last;
-
-            try
-            {
-                last = Last.ParseIso8601TimeDuration();
-            }
-            catch (FormatException)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("The duration is not a valid ISO 8601 time duration. ");
-                Console.WriteLine("Refer to the time component of https://en.wikipedia.org/wiki/ISO_8601#Durations");
-                return;
-            }
-            finally
-            {
-                Console.ResetColor();
-            }
-
-            // TODO: cancellation token
-
-            var storageConnectionString = Prompt.GetPassword("SAS", ConsoleColor.White, ConsoleColor.DarkBlue);
-
-            var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
-            var tableClient = storageAccount.CreateCloudTableClient();
-            var table = tableClient.GetTableReference("WADLogsTable");
-
-            if (!await table.ExistsAsync())
-            {
-                throw new InvalidOperationException("The table 'WADLogsTable' does not exist in this storage account.");
-            }
-
-            var since = $"0{(DateTime.UtcNow - last).Ticks}";
-
-            var query = new TableQuery<DynamicTableEntity>()
-                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.GreaterThan, since))
-                .Select(new[] {"PreciseTimeStamp", "Level", "Message"});
-
-            EntityResolver<WadLogs> resolver = (pk, rk, ts, props, etag) => new WadLogs
-            {
-                Generated = props["PreciseTimeStamp"].DateTime.GetValueOrDefault(),
-                Level = ParseLevel(props["Level"].Int32Value),
-                Message = props["Message"].StringValue,
-            };
-
-            TableContinuationToken continuationToken = null;
-
-            using (var outputFile = File.CreateText(fullPath))
-            {
-                outputFile.WriteLine("Generated,Level,Message");
-
-                do
-                {
-                    var result = await table.ExecuteQuerySegmentedAsync(query, resolver, continuationToken);
-
-                    foreach (var log in result.Results)
-                    {
-                        if (log.Message.Length <= 12 || log.Message[11] != 'M')
-                        {
-                            continue;
-                        }
-
-                        outputFile.WriteLine(
-                            $"{FormatGenerated(log.Generated)},{log.Level},{FormatMessage(log.Message)}");
-                    }
-
-                    continuationToken = result.ContinuationToken;
-                } while (continuationToken != null);
-            }
-
-            string ParseLevel(int? level)
-            {
-                // TODO: investigate why Warning is 3 and Information is 4
-
-                switch (level)
-                {
-                    case 1:
-                        return "Critical";
-                    case 2:
-                        return "Error";
-                    case 4:
-                        return "Information";
-                    case 3:
-                        return "Warning";
-                    case 5:
-                        return "Verbose";
-                }
-
-                return "Undefined";
-            }
-
-            string FormatMessage(string message)
-            {
-                return message.Substring(33, message.Length - 23 - 33);
-            }
-
-            string FormatGenerated(DateTime generated)
-            {
-                return generated.ToString("yyyy-MM-ddTHH:mm:ss.fffT");
             }
         }
 
-        class WadLogs
+        private static void WriteDebug(string line)
         {
-            public DateTime Generated { get; set; }
-            public string Message { get; set; }
-            public string Level { get; set; }
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine(line);
+            Console.ResetColor();
+        }
+
+        private static void WriteError(string line)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(line);
+            Console.ResetColor();
+        }
+
+        private static string GetStorageAccountName(string connectionString)
+        {
+            var lastIndex = connectionString.LastIndexOf(':');
+
+            if (lastIndex == -1) return null;
+
+            var storageAccountUri = connectionString.Substring(lastIndex + 3);
+
+            var firstindex = storageAccountUri.IndexOf('.');
+
+            return firstindex == -1 ? null : storageAccountUri.Substring(0, firstindex);
+        }
+
+        private static void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs consoleCancelEventArgs)
+        {
+            Console.WriteLine("ConsoleCancelEvent received => Cancelling token");
+            consoleCancelEventArgs.Cancel = true;
+            Cts.Cancel();
         }
     }
 }
