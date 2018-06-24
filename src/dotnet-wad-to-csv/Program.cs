@@ -4,11 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using DotNet.WadToCsv.Models;
+using DotNet.WadToCsv.Services;
 using DotNet.WadToCsv.Validation;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace DotNet.WadToCsv
 {
@@ -39,57 +37,33 @@ namespace DotNet.WadToCsv
 
             Console.CancelKeyPress += ConsoleOnCancelKeyPress;
 
-            var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
-            var tableClient = storageAccount.CreateCloudTableClient();
-            var table = tableClient.GetTableReference("WADLogsTable");
-
             try
             {
-                if (!await table.ExistsAsync(null, null, Token))
-                {
-                    throw new InvalidOperationException(
-                        "The table 'WADLogsTable' does not exist in this storage account.");
-                }
+                var since = DateTime.UtcNow - last;
 
-                var since = $"0{(DateTime.UtcNow - last).Ticks}";
-
-                var query = new TableQuery<DynamicTableEntity>()
-                    .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.GreaterThan, since))
-                    .Select(new[] {"PreciseTimeStamp", "Level", "Message"});
-
-                EntityResolver<WadLogs> resolver = (pk, rk, ts, props, etag) => new WadLogs
-                {
-                    Generated = props["PreciseTimeStamp"].DateTime.GetValueOrDefault(),
-                    Level = props["Level"].Int32Value.GetValueOrDefault(),
-                    Message = props["Message"].StringValue,
-                };
-
-                TableContinuationToken continuationToken = null;
+                var repository = new Repository(storageConnectionString);
+                var logs = await repository.GetLogsAsync(since, Token);
 
                 using (var outputFile = File.CreateText(fullPath))
                 {
                     outputFile.WriteLine("Generated,Level,Message");
-
-                    do
+                    foreach (var log in logs)
                     {
-                        var result = await table.ExecuteQuerySegmentedAsync(query, resolver, continuationToken, null,
-                            null, Token);
-
-                        foreach (var log in result.Results)
-                        {
-                            outputFile.WriteLine(log);
-                        }
-
-                        continuationToken = result.ContinuationToken;
-                    } while (continuationToken != null);
+                        outputFile.WriteLine(log);
+                    }
                 }
             }
             catch (Exception e)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Exception: {0}", e.GetType());
                 Console.WriteLine("Message: {0}", e.Message);
                 Console.WriteLine("StackTrace:");
                 Console.WriteLine(e.Demystify().StackTrace);
+            }
+            finally
+            {
+                Console.ResetColor();
             }
         }
 
