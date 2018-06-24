@@ -33,16 +33,18 @@ namespace DotNet.WadToCsv
             var fullPath = Path.GetFullPath(OutputFilePath);
             var last = Last.ParseIso8601TimeDuration();
 
-            var storageConnectionString = Prompt.GetPassword("SAS", ConsoleColor.White, ConsoleColor.DarkBlue);
+            var sas = Prompt.GetPassword("Shared Access Signature:", ConsoleColor.White, ConsoleColor.DarkBlue);
 
             Console.CancelKeyPress += ConsoleOnCancelKeyPress;
 
             try
             {
-                var since = DateTime.UtcNow - last;
+                var from = DateTime.UtcNow - last;
 
-                var repository = new Repository(storageConnectionString);
-                var logs = await repository.GetLogsAsync(since, Token);
+                WriteLine($"Querying storage account '{GetStorageAccountName(sas)}' from '{from:u}' to 'Now'");
+
+                var repository = new Repository(sas);
+                var logs = await repository.GetLogsAsync(from, Token);
 
                 using (var outputFile = File.CreateText(fullPath))
                 {
@@ -52,6 +54,9 @@ namespace DotNet.WadToCsv
                         outputFile.WriteLine(log);
                     }
                 }
+
+                Console.WriteLine();
+                WriteLine("Done");
             }
             catch (Exception e)
             {
@@ -65,6 +70,26 @@ namespace DotNet.WadToCsv
             {
                 Console.ResetColor();
             }
+        }
+
+        private static void WriteLine(string line)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine(line);
+            Console.ResetColor();
+        }
+
+        private static string GetStorageAccountName(string connectionString)
+        {
+            var lastIndex = connectionString.LastIndexOf(':');
+
+            if (lastIndex == -1) return null;
+
+            var storageAccountUri = connectionString.Substring(lastIndex + 3);
+
+            var firstindex = storageAccountUri.IndexOf('.');
+
+            return firstindex == -1 ? null : storageAccountUri.Substring(0, firstindex);
         }
 
         private static void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs consoleCancelEventArgs)

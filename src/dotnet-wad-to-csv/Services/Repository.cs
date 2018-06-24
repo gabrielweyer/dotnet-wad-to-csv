@@ -20,20 +20,20 @@ namespace DotNet.WadToCsv.Services
             Message = props["Message"].StringValue,
         };
 
-        public Repository(string connectionString)
+        public Repository(string sas)
         {
-            var storageAccount = CloudStorageAccount.Parse(connectionString);
+            var storageAccount = CloudStorageAccount.Parse(sas);
             var tableClient = storageAccount.CreateCloudTableClient();
             _table = tableClient.GetTableReference("WADLogsTable");
         }
 
-        public async Task<List<WadLogs>> GetLogsAsync(DateTime since, CancellationToken token)
+        public async Task<List<WadLogs>> GetLogsAsync(DateTime from, CancellationToken token)
         {
-            var sinceAsPartitionKey = $"0{since.Ticks}";
+            var fromAsPartitionKey = $"0{from.Ticks}";
 
             var query = new TableQuery<DynamicTableEntity>()
                 .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.GreaterThan,
-                    sinceAsPartitionKey))
+                    fromAsPartitionKey))
                 .Select(new[] {"PreciseTimeStamp", "Level", "Message"});
 
             TableContinuationToken continuationToken = null;
