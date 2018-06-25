@@ -1,12 +1,11 @@
-# Windows Azure Diagnostics to CSV
+# Azure Diagnostics to CSV
 
-`.NET Core` [global tool][dotnet-global-tools] to retrieve logs from a `WADLogsTable` and write them to a `CSV` file.
-
-The tool will attempt to obfuscate settings that have been logged due to this [issue][github-issue] in the [Microsoft.WindowsAzure.ConfigurationManager][configuration-manager-nuget].
+`.NET Core` [global tools][dotnet-global-tools] to retrieve Azure Diagnostics logs from a `WADLogsTable` or blobs and write them to a `CSV` file.
 
 | Package | Release | Pre-release |
 | --- | --- | --- |
-| `dotnet-wad-to-csv` | [![NuGet][nuget-tool-badge]][nuget-tool-command] | [![MyGet][myget-tool-badge]][myget-tool-command] |
+| `dotnet-wad-to-csv` | [![NuGet][nuget-wad-tool-badge]][nuget-wad-tool-command] | [![MyGet][myget-wad-tool-badge]][myget-wad-tool-command] |
+| `dotnet-blob-to-csv` | [![NuGet][nuget-blob-tool-badge]][nuget-blob-tool-command] | [![MyGet][myget-blob-tool-badge]][myget-blob-tool-command] |
 
 | CI | Status | Platform(s) | Framework(s) |
 | --- | --- | --- | --- |
@@ -18,7 +17,11 @@ The tool will attempt to obfuscate settings that have been logged due to this [i
 > dotnet tool install -g dotnet-wad-to-csv
 ```
 
-## Usage
+```posh
+> dotnet tool install -g dotnet-blob-to-csv
+```
+
+## WAD to CSV Usage
 
 ```posh
 > dotnet wad-to-csv -l <last> -o <output-file-path>
@@ -49,6 +52,29 @@ The tool will prompt you for a [Shared Access Signature][sas] so that it doesn't
 - `Container` and `Object` resource types
 - A short expiration time
 
+`WAD to CSV` will attempt to obfuscate settings that have been logged due to this [issue][github-issue] in the [Microsoft.WindowsAzure.ConfigurationManager][configuration-manager-nuget].
+
+## Blob to CSV Usage
+
+```posh
+> dotnet blob-to-csv -f <from> -t <to> -o <output-file-path> -c <container> -p <prefix>
+```
+
+- `<from>`: `ISO 8601 date time` expressed in `UTC`.
+  - Valid date time: `2018-06-24T23:12:15`
+  - The time component can be omitted: `2018-06-24`
+- `<to>`: `ISO 8601 date time` expressed in `UTC`.
+- `<output-file-path>`: where you wish to write the output file, does not need to exist but should be valid. If a file exists with the same name it will be replaced.
+- `<container>`: The name of the container. For `https://account.blob.core.windows.net/container-name/prefix/2018/06/22/00/e872fe-54660.applicationLog.csv`, the container name is `container-name`.
+- `<prefix>`: The prefix (if any). For `https://account.blob.core.windows.net/container-name/prefix/2018/06/22/00/e872fe-54660.applicationLog.csv`, the prefix is `prefix`.
+
+The tool will prompt you for a [Shared Access Signature][sas] so that it doesn't get saved to your `CLI` history. I recommend you restrict the `SAS` to:
+
+- `Read` and `List` permissions
+- `Blobs` service
+- `Container` and `Object` resource types
+- A short expiration time
+
 ## Output file format
 
 ```csv
@@ -57,7 +83,7 @@ Generated,Level,Message
 ```
 
 - `Generated` is expressed in `UTC`
-- The `Level` is converted from the `Level` column:
+- The `Level` is written as-is for blobs and converted from the `Level` column for the `WADLogsTable`:
   - `1`: `Fatal`
   - `2`: `Error`
   - `3`: `Warning`
@@ -73,8 +99,12 @@ Generated,Level,Message
 [github-issue]: https://github.com/Azure/azure-sdk-for-net/issues/653
 [app-veyor]: https://ci.appveyor.com/project/GabrielWeyer/dotnet-wad-to-csv
 [app-veyor-shield]: https://img.shields.io/appveyor/ci/gabrielweyer/dotnet-wad-to-csv/master.svg?label=AppVeyor&style=flat-square
-[nuget-tool-badge]: https://img.shields.io/nuget/v/dotnet-wad-to-csv.svg?label=NuGet&style=flat-square
-[nuget-tool-command]: https://www.nuget.org/packages/dotnet-wad-to-csv
-[myget-tool-badge]: https://img.shields.io/myget/gabrielweyer-pre-release/v/dotnet-wad-to-csv.svg?label=MyGet&style=flat-square
-[myget-tool-command]: https://www.myget.org/feed/gabrielweyer-pre-release/package/nuget/dotnet-wad-to-csv
+[nuget-wad-tool-badge]: https://img.shields.io/nuget/v/dotnet-wad-to-csv.svg?label=NuGet&style=flat-square
+[nuget-wad-tool-command]: https://www.nuget.org/packages/dotnet-wad-to-csv
+[myget-wad-tool-badge]: https://img.shields.io/myget/gabrielweyer-pre-release/v/dotnet-wad-to-csv.svg?label=MyGet&style=flat-square
+[myget-wad-tool-command]: https://www.myget.org/feed/gabrielweyer-pre-release/package/nuget/dotnet-wad-to-csv
 [configuration-manager-nuget]: https://www.nuget.org/packages/Microsoft.WindowsAzure.ConfigurationManager/
+[nuget-blob-tool-badge]: https://img.shields.io/nuget/v/dotnet-blob-to-csv.svg?label=NuGet&style=flat-square
+[nuget-blob-tool-command]: https://www.nuget.org/packages/dotnet-blob-to-csv
+[myget-blob-tool-badge]: https://img.shields.io/myget/gabrielweyer-pre-release/v/dotnet-blob-to-csv.svg?label=MyGet&style=flat-square
+[myget-blob-tool-command]: https://www.myget.org/feed/gabrielweyer-pre-release/package/nuget/dotnet-blob-to-csv

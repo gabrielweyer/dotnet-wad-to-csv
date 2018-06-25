@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PackAsTool>true</PackAsTool>
+    <RootNamespace>DotNet.BlobToCsv</RootNamespace>
+    <AssemblyName>dotnet-blob-to-csv</AssemblyName>
+    <PackageId>dotnet-blob-to-csv</PackageId>
+    <Authors>Gabriel Weyer</Authors>
+    <PackageDescription>Retrieve Azure Diagnostics logs from blobs and write them to a CSV file.</PackageDescription>
+    <PackageTags>Azure Diagnostics;Log;blob;CSV</PackageTags>
+    <PackageProjectUrl>https://github.com/gabrielweyer/dotnet-wad-to-csv</PackageProjectUrl>
+    <Copyright>Copyright © Blob to CSV contributors</Copyright>
+    <LangVersion>7.2</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="7.1.1" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.4" />
+    <PackageReference Include="Serilog.Enrichers.Demystify" Version="0.1.0-dev-00016" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.2.0" />
+  </ItemGroup>
+</Project>
