@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 
-namespace DotNet.BlobToCsv.Validation
+namespace DotNet.AzureDiagnostics.Core.Validation
 {
     public class WritableFileAttribute : ValidationAttribute
     {

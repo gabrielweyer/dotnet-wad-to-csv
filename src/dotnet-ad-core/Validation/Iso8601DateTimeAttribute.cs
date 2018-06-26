@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using DotNet.AzureDiagnostics.Core.Parsers;
 
-namespace DotNet.BlobToCsv.Validation
+namespace DotNet.AzureDiagnostics.Core.Validation
 {
     public class Iso8601DateTimeAttribute : ValidationAttribute
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using DotNet.AzureDiagnostics.Core.Parsers;
 using DotNet.WadToCsv.Models;
 
 namespace DotNet.WadToCsv

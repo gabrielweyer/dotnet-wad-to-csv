@@ -6,8 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNet.AzureDiagnostics.Core.Validation;
 using DotNet.BlobToCsv.Services;
-using DotNet.BlobToCsv.Validation;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.WindowsAzure.Storage.Blob;
 
