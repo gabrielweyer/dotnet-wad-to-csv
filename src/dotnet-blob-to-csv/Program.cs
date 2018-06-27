@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNet.AzureDiagnostics.Core.Helpers;
+using DotNet.AzureDiagnostics.Core.Parsers;
 using DotNet.AzureDiagnostics.Core.Validation;
 using DotNet.BlobToCsv.Services;
 using McMaster.Extensions.CommandLineUtils;
@@ -15,6 +17,11 @@ namespace DotNet.BlobToCsv
 {
     class Program
     {
+        [Iso8601TimeDuration]
+        [Option(ShortName = "l", LongName = "last",
+            Description = "ISO 8601 time duration, substracted from the current UTC time")]
+        public string Last { get; }
+
         [Iso8601DateTime]
         [Option(ShortName = "f", LongName = "from",
             Description = "ISO 8601 date time in UTC, time can be omitted")]
@@ -46,8 +53,13 @@ namespace DotNet.BlobToCsv
         {
             var outputFilePath = Path.GetFullPath(OutputFilePath);
 
-            From.TryParseIso8601DateTime(out var from);
-            To.TryParseIso8601DateTime(out var to);
+            var getRangeResult = RangeParser.TryGetRange(Last, From, To, out var range);
+
+            if (!string.IsNullOrEmpty(getRangeResult?.ErrorMessage))
+            {
+                ConsoleHelper.WriteError(getRangeResult.ErrorMessage);
+                return;
+            }
 
             var sas = Prompt.GetPassword("Shared Access Signature:", ConsoleColor.White, ConsoleColor.DarkBlue);
 
@@ -59,6 +71,11 @@ namespace DotNet.BlobToCsv
                 {
                     Prefix += "/";
                 }
+
+                ConsoleHelper.WriteDebug($"Querying storage account '{StorageAccountHelper.GetStorageAccountName(sas)}' from {range}");
+
+                var from = range.From;
+                var to = range.To ?? DateTime.UtcNow;
 
                 var datePrefixes = PrefixService.BuildBlobPrefixes(from, to, Prefix);
 
@@ -79,7 +96,10 @@ namespace DotNet.BlobToCsv
 
                 await repository.DownloadLogBlobsAsync(filtered, tempDirectory, CancellationToken.None);
 
-                CsvWriter.Write(tempDirectory, outputFilePath);
+                CsvWriter.Write(from, to, tempDirectory, outputFilePath);
+
+                Console.WriteLine();
+                ConsoleHelper.WriteDebug("Done");
             }
             catch (Exception e)
             {

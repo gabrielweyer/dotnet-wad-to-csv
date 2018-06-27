@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using CsvHelper;
 using DotNet.BlobToCsv.Models;
 
@@ -6,7 +8,7 @@ namespace DotNet.BlobToCsv.Services
 {
     public static class CsvWriter
     {
-        public static void Write(string logDirectory, string outputFilePath)
+        public static void Write(DateTime from, DateTime to, string logDirectory, string outputFilePath)
         {
             using (var textWriter = File.CreateText(outputFilePath))
             {
@@ -21,7 +23,7 @@ namespace DotNet.BlobToCsv.Services
                         var csvReader = new CsvReader(textReader);
                         csvReader.Configuration.RegisterClassMap<ApplicationLogReadMap>();
                         var logLines = csvReader.GetRecords<ApplicationLog>();
-                        csvWriter.WriteRecords(logLines);
+                        csvWriter.WriteRecords(logLines.Where(l => l.Generated >= from && l.Generated <= to));
                     }
                 }
             }

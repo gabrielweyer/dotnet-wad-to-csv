@@ -4,9 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNet.AzureDiagnostics.Core.Helpers;
+using DotNet.AzureDiagnostics.Core.Parsers;
 using DotNet.AzureDiagnostics.Core.Validation;
 using DotNet.WadToCsv.Services;
-using DotNet.WadToCsv.Validation;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace DotNet.WadToCsv
@@ -15,7 +16,7 @@ namespace DotNet.WadToCsv
     {
         [Iso8601TimeDuration]
         [Option(ShortName = "l", LongName = "last",
-            Description = "ISO 8601 duration, substracted from the current UTC time")]
+            Description = "ISO 8601 time duration, substracted from the current UTC time")]
         public string Last { get; }
 
         [Iso8601DateTime]
@@ -46,7 +47,7 @@ namespace DotNet.WadToCsv
 
             if (!string.IsNullOrEmpty(getRangeResult?.ErrorMessage))
             {
-                WriteError(getRangeResult.ErrorMessage);
+                ConsoleHelper.WriteError(getRangeResult.ErrorMessage);
                 return;
             }
 
@@ -56,7 +57,7 @@ namespace DotNet.WadToCsv
 
             try
             {
-                WriteDebug($"Querying storage account '{GetStorageAccountName(sas)}' from {range}");
+                ConsoleHelper.WriteDebug($"Querying storage account '{StorageAccountHelper.GetStorageAccountName(sas)}' from {range}");
 
                 var repository = new Repository(sas);
                 var logs = await repository.GetLogsAsync(range, Token);
@@ -71,7 +72,7 @@ namespace DotNet.WadToCsv
                 }
 
                 Console.WriteLine();
-                WriteDebug("Done");
+                ConsoleHelper.WriteDebug("Done");
             }
             catch (Exception e)
             {
@@ -85,33 +86,6 @@ namespace DotNet.WadToCsv
             {
                 Console.ResetColor();
             }
-        }
-
-        private static void WriteDebug(string line)
-        {
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine(line);
-            Console.ResetColor();
-        }
-
-        private static void WriteError(string line)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(line);
-            Console.ResetColor();
-        }
-
-        private static string GetStorageAccountName(string connectionString)
-        {
-            var lastIndex = connectionString.LastIndexOf(':');
-
-            if (lastIndex == -1) return null;
-
-            var storageAccountUri = connectionString.Substring(lastIndex + 3);
-
-            var firstindex = storageAccountUri.IndexOf('.');
-
-            return firstindex == -1 ? null : storageAccountUri.Substring(0, firstindex);
         }
 
         private static void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs consoleCancelEventArgs)

@@ -57,13 +57,25 @@ The tool will prompt you for a [Shared Access Signature][sas] so that it doesn't
 ## Blob to CSV Usage
 
 ```posh
+> dotnet blob-to-csv -l <last> -o <output-file-path> -c <container> -p <prefix>
+```
+
+```posh
+> dotnet blob-to-csv -f <from> -o <output-file-path> -c <container> -p <prefix>
+```
+
+```posh
 > dotnet blob-to-csv -f <from> -t <to> -o <output-file-path> -c <container> -p <prefix>
 ```
 
-- `<from>`: `ISO 8601 date time` expressed in `UTC`.
+- `<last>`: based on the `time designator` of the [ISO 8601 durations][iso-8601-duration]. This duration is then substracted from the current `UTC` time. For example:
+  - `5M`: get all the logs for the last `5` **minutes**
+  - `1H`: get all the logs for the last `1` **hour**
+  - You can combine them too if you feel like it, i.e. `2H3M5S` would get all the logs for the last `7385` **seconds**
+- `<from>`: `ISO 8601 date time` expressed in `UTC`. Cannot be combined with `<last>`, can be combined with `<to>`.
   - Valid date time: `2018-06-24T23:12:15`
   - The time component can be omitted: `2018-06-24`
-- `<to>`: `ISO 8601 date time` expressed in `UTC`.
+- `<to>`: `ISO 8601 date time` expressed in `UTC`. Must be be combined with `<from>`.
 - `<output-file-path>`: where you wish to write the output file, does not need to exist but should be valid. If a file exists with the same name it will be replaced.
 - `<container>`: The name of the container. For `https://account.blob.core.windows.net/container-name/prefix/2018/06/22/00/e872fe-54660.applicationLog.csv`, the container name is `container-name`.
 - `<prefix>`: The prefix (if any). For `https://account.blob.core.windows.net/container-name/prefix/2018/06/22/00/e872fe-54660.applicationLog.csv`, the prefix is `prefix`.
