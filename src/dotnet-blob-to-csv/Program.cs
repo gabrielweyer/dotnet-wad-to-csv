@@ -49,7 +49,7 @@ namespace DotNet.BlobToCsv
 
         static Task<int> Main(string[] args) => CommandLineApplication.ExecuteAsync<Program>(args);
 
-        private async Task OnExecuteAsync(string[] args)
+        private async Task OnExecuteAsync()
         {
             var outputFilePath = Path.GetFullPath(OutputFilePath);
 
