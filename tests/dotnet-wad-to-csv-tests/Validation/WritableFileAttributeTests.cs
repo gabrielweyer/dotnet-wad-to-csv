@@ -1,11 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using DotNet.WadToCsv.Validation;
+using DotNet.AzureDiagnostics.Core.Validation;
 using FluentAssertions;
 using Xunit;
 
-namespace DotNet.WadToCsv.Tests
+namespace DotNet.WadToCsv.Tests.Validation
 {
     public class WritableFileAttributeTests
     {

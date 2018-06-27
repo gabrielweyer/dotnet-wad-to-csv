@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DotNet.WadToCsv.Models
+namespace DotNet.AzureDiagnostics.Core.Models
 {
     public class Range
     {

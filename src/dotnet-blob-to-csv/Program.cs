@@ -1,16 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNet.AzureDiagnostics.Core.Helpers;
 using DotNet.AzureDiagnostics.Core.Parsers;
 using DotNet.AzureDiagnostics.Core.Validation;
-using DotNet.WadToCsv.Services;
+using DotNet.BlobToCsv.Services;
 using McMaster.Extensions.CommandLineUtils;
+using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace DotNet.WadToCsv
+namespace DotNet.BlobToCsv
 {
     class Program
     {
@@ -34,6 +37,13 @@ namespace DotNet.WadToCsv
         [Option(ShortName = "o", LongName = "output", Description = "Required. Output file path.")]
         public string OutputFilePath { get; }
 
+        [Required]
+        [Option(ShortName = "c", LongName = "container", Description = "Required. The name of the storage container.")]
+        public string Container { get; }
+
+        [Option(ShortName = "p", LongName = "prefix", Description = "The prefix (if any).")]
+        public string Prefix { get; set; }
+
         private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
         private static readonly CancellationToken Token = Cts.Token;
 
@@ -41,7 +51,7 @@ namespace DotNet.WadToCsv
 
         private async Task OnExecuteAsync()
         {
-            var fullPath = Path.GetFullPath(OutputFilePath);
+            var outputFilePath = Path.GetFullPath(OutputFilePath);
 
             var getRangeResult = RangeParser.TryGetRange(Last, From, To, out var range);
 
@@ -57,22 +67,36 @@ namespace DotNet.WadToCsv
 
             try
             {
-                ConsoleHelper.WriteDebug(
-                    $"Querying 'WADLogsTable' from storage account '{StorageAccountHelper.GetStorageAccountName(sas)}' from {range}...");
-
-                var repository = new Repository(sas);
-                var logs = await repository.GetLogsAsync(range, Token);
-
-                ConsoleHelper.WriteDebug($"Writing {logs.Count} log event(s)...");
-
-                using (var outputFile = File.CreateText(fullPath))
+                if (Prefix.Last() != '/')
                 {
-                    outputFile.WriteLine("Generated,Level,Message");
-                    foreach (var log in logs)
-                    {
-                        outputFile.WriteLine(log);
-                    }
+                    Prefix += "/";
                 }
+
+                ConsoleHelper.WriteDebug($"Querying storage account '{StorageAccountHelper.GetStorageAccountName(sas)}' from {range}");
+
+                var from = range.From;
+                var to = range.To ?? DateTime.UtcNow;
+
+                var datePrefixes = PrefixService.BuildBlobPrefixes(from, to, Prefix);
+
+                var repository = new Repository(sas, Container);
+
+                var blobs = new List<CloudBlockBlob>();
+
+                foreach (var datePrefix in datePrefixes)
+                {
+                    blobs.AddRange(await repository.ListLogBlobsAsync(datePrefix, CancellationToken.None));
+                }
+
+                var tempDirectory = Path.Combine(Path.GetTempPath(), "wad-to-csv",
+                    Path.GetRandomFileName().Replace(".", string.Empty));
+                Directory.CreateDirectory(tempDirectory);
+
+                var filtered = PrefixService.Filter(blobs, from, to, Prefix);
+
+                await repository.DownloadLogBlobsAsync(filtered, tempDirectory, CancellationToken.None);
+
+                CsvWriter.Write(from, to, tempDirectory, outputFilePath);
 
                 Console.WriteLine();
                 ConsoleHelper.WriteDebug("Done");

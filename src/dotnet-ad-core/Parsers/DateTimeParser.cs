@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace DotNet.WadToCsv
+namespace DotNet.AzureDiagnostics.Core.Parsers
 {
     public static class DateTimeParser
     {

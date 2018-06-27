@@ -1,8 +1,9 @@
 ﻿using System;
+using DotNet.AzureDiagnostics.Core.Parsers;
 using FluentAssertions;
 using Xunit;
 
-namespace DotNet.WadToCsv.Tests
+namespace DotNet.WadToCsv.Tests.Parsers
 {
     public class RangeParserTests
     {

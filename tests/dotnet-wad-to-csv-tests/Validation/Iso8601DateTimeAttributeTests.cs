@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using DotNet.WadToCsv.Validation;
+using DotNet.AzureDiagnostics.Core.Validation;
 using FluentAssertions;
 using Xunit;
 

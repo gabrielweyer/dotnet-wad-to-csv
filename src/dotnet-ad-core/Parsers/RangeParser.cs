@@ -1,8 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using DotNet.WadToCsv.Models;
+using DotNet.AzureDiagnostics.Core.Models;
 
-namespace DotNet.WadToCsv
+namespace DotNet.AzureDiagnostics.Core.Parsers
 {
     public static class RangeParser
     {
@@ -21,7 +21,7 @@ namespace DotNet.WadToCsv
                 return new ValidationResult("'--to' can only be used in conjonction with '--from'.");
             }
 
-            var rangeFrom = DateTime.UtcNow;
+            DateTime rangeFrom;
 
             if (string.IsNullOrEmpty(from))
             {
