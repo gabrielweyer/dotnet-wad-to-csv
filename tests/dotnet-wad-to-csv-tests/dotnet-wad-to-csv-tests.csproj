@@ -15,5 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\dotnet-blob-to-csv\dotnet-blob-to-csv.csproj" />
     <ProjectReference Include="..\..\src\dotnet-wad-to-csv\dotnet-wad-to-csv.csproj" />
+    <ProjectReference Include="..\..\src\dotnet-ad-core\dotnet-ad-core.csproj" />
   </ItemGroup>
 </Project>
