@@ -16,22 +16,22 @@ namespace DotNet.WadToCsv
     {
         [Iso8601TimeDuration]
         [Option(ShortName = "l", LongName = "last",
-            Description = "ISO 8601 time duration, substracted from the current UTC time")]
+            Description = "ISO 8601 time duration, substracted from the current UTC time.")]
         public string Last { get; }
 
         [Iso8601DateTime]
         [Option(ShortName = "f", LongName = "from",
-            Description = "ISO 8601 date time in UTC, time can be omitted")]
+            Description = "ISO 8601 date time in UTC, time can be omitted.")]
         public string From { get; }
 
         [Iso8601DateTime]
         [Option(ShortName = "t", LongName = "to",
-            Description = "ISO 8601 date time in UTC, time can be omitted")]
+            Description = "ISO 8601 date time in UTC, time can be omitted.")]
         public string To { get; }
 
         [Required]
         [WritableFile]
-        [Option(ShortName = "o", LongName = "output", Description = "Required. Output file path")]
+        [Option(ShortName = "o", LongName = "output", Description = "Required. Output file path.")]
         public string OutputFilePath { get; }
 
         private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
@@ -57,10 +57,13 @@ namespace DotNet.WadToCsv
 
             try
             {
-                ConsoleHelper.WriteDebug($"Querying storage account '{StorageAccountHelper.GetStorageAccountName(sas)}' from {range}");
+                ConsoleHelper.WriteDebug(
+                    $"Querying 'WADLogsTable' from storage account '{StorageAccountHelper.GetStorageAccountName(sas)}' from {range}...");
 
                 var repository = new Repository(sas);
                 var logs = await repository.GetLogsAsync(range, Token);
+
+                ConsoleHelper.WriteDebug($"Writing {logs.Count} log event(s)...");
 
                 using (var outputFile = File.CreateText(fullPath))
                 {

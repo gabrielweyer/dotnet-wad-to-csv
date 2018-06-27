@@ -19,29 +19,29 @@ namespace DotNet.BlobToCsv
     {
         [Iso8601TimeDuration]
         [Option(ShortName = "l", LongName = "last",
-            Description = "ISO 8601 time duration, substracted from the current UTC time")]
+            Description = "ISO 8601 time duration, substracted from the current UTC time.")]
         public string Last { get; }
 
         [Iso8601DateTime]
         [Option(ShortName = "f", LongName = "from",
-            Description = "ISO 8601 date time in UTC, time can be omitted")]
+            Description = "ISO 8601 date time in UTC, time can be omitted.")]
         public string From { get; }
 
         [Iso8601DateTime]
         [Option(ShortName = "t", LongName = "to",
-            Description = "ISO 8601 date time in UTC, time can be omitted")]
+            Description = "ISO 8601 date time in UTC, time can be omitted.")]
         public string To { get; }
 
         [Required]
         [WritableFile]
-        [Option(ShortName = "o", LongName = "output", Description = "Required. Output file path")]
+        [Option(ShortName = "o", LongName = "output", Description = "Required. Output file path.")]
         public string OutputFilePath { get; }
 
         [Required]
-        [Option(ShortName = "c", LongName = "container", Description = "Required. The name of the storage container")]
+        [Option(ShortName = "c", LongName = "container", Description = "Required. The name of the storage container.")]
         public string Container { get; }
 
-        [Option(ShortName = "p", LongName = "prefix", Description = "The prefix (if any)")]
+        [Option(ShortName = "p", LongName = "prefix", Description = "The prefix (if any).")]
         public string Prefix { get; set; }
 
         private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
