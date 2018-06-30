@@ -50,11 +50,15 @@ namespace DotNet.WadToCsv.Tests.Validation
         }
 
         [Fact]
-        public void GivenWritableFilePath_WhenGetValidationResult_ThenNoErrorMessage()
+        public void GivenWritableFilePathInNewDirectory_WhenGetValidationResult_ThenNoErrorMessage()
         {
             // Arrange
 
-            var writableFilePath = Path.GetTempFileName();
+            var writableFilePath = Path.Combine(
+                Path.GetTempPath(),
+                "wad-to-csv-tests",
+                Guid.NewGuid().ToString(),
+                Path.GetRandomFileName());
 
             SetTarget(writableFilePath);
 

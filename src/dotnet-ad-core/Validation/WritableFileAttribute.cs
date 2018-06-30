@@ -20,6 +20,7 @@ namespace DotNet.AzureDiagnostics.Core.Validation
 
             try
             {
+                Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
                 File.WriteAllText(fullPath, "q");
                 return ValidationResult.Success;
             }
