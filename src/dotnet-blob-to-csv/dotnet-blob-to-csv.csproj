@@ -14,10 +14,10 @@
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CsvHelper" Version="7.1.1" />
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.4" />
+    <PackageReference Include="CsvHelper" Version="12.1.0" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.3.0" />
     <PackageReference Include="Serilog.Enrichers.Demystify" Version="0.1.0-dev-00016" />
-    <PackageReference Include="WindowsAzure.Storage" Version="9.2.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dotnet-ad-core\dotnet-ad-core.csproj" />
