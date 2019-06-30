@@ -43,7 +43,7 @@ deploy:
     api_key:
       # Encrypted `NuGet.org` token - https://www.nuget.org/account/ApiKeys
       # https://www.appveyor.com/docs/deployment/nuget/#provider-settings
-      secure: JLFMaaZgALubX8BKZiJaFw8i6c4kVu9Q1cLwSHK9WSiFJ385WKwwFAwDkNprJugo
+      secure: R/FPkcohOwV7rSdAldncHGQVKQwZhNWUjlXYJeiNP0CbmPVdS3yqs2gpsS4XEwUj
     skip_symbols: false
     symbol_server: https://nuget.smbsrc.net/
     artifact: packages
