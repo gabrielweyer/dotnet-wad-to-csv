@@ -2,10 +2,10 @@
 
 `.NET Core` [global tools][dotnet-global-tools] to retrieve Azure Diagnostics logs from a `WADLogsTable` or blobs and write them to a `CSV` file.
 
-| Package | Release | Pre-release |
-| --- | --- | --- |
-| `dotnet-wad-to-csv` | [![NuGet][nuget-wad-tool-badge]][nuget-wad-tool-command] | [![MyGet][myget-wad-tool-badge]][myget-wad-tool-command] |
-| `dotnet-blob-to-csv` | [![NuGet][nuget-blob-tool-badge]][nuget-blob-tool-command] | [![MyGet][myget-blob-tool-badge]][myget-blob-tool-command] |
+| Package | Release |
+| - | - |
+| `dotnet-wad-to-csv` | [![NuGet][nuget-wad-tool-badge]][nuget-wad-tool-command] |
+| `dotnet-blob-to-csv` | [![NuGet][nuget-blob-tool-badge]][nuget-blob-tool-command] |
 
 | CI | Status | Platform(s) | Framework(s) |
 | --- | --- | --- | --- |
@@ -113,10 +113,6 @@ Generated,Level,Message
 [app-veyor-shield]: https://img.shields.io/appveyor/ci/gabrielweyer/dotnet-wad-to-csv/master.svg?label=AppVeyor&style=flat-square
 [nuget-wad-tool-badge]: https://img.shields.io/nuget/v/dotnet-wad-to-csv.svg?label=NuGet&style=flat-square
 [nuget-wad-tool-command]: https://www.nuget.org/packages/dotnet-wad-to-csv
-[myget-wad-tool-badge]: https://img.shields.io/myget/gabrielweyer-pre-release/v/dotnet-wad-to-csv.svg?label=MyGet&style=flat-square
-[myget-wad-tool-command]: https://www.myget.org/feed/gabrielweyer-pre-release/package/nuget/dotnet-wad-to-csv
 [configuration-manager-nuget]: https://www.nuget.org/packages/Microsoft.WindowsAzure.ConfigurationManager/
 [nuget-blob-tool-badge]: https://img.shields.io/nuget/v/dotnet-blob-to-csv.svg?label=NuGet&style=flat-square
 [nuget-blob-tool-command]: https://www.nuget.org/packages/dotnet-blob-to-csv
-[myget-blob-tool-badge]: https://img.shields.io/myget/gabrielweyer-pre-release/v/dotnet-blob-to-csv.svg?label=MyGet&style=flat-square
-[myget-blob-tool-command]: https://www.myget.org/feed/gabrielweyer-pre-release/package/nuget/dotnet-blob-to-csv
