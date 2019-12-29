@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using DotNet.AzureDiagnostics.Core.Models;
 using DotNet.WadToCsv.Models;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -28,7 +27,7 @@ namespace DotNet.WadToCsv.Services
             _table = tableClient.GetTableReference("WADLogsTable");
         }
 
-        public async Task<List<WadLogs>> GetLogsAsync(Range range, CancellationToken token)
+        public async Task<List<WadLogs>> GetLogsAsync(DotNet.AzureDiagnostics.Core.Models.Range range, CancellationToken token)
         {
             var fromAsPartitionKey = FormatAsPartitionKey(range.From);
 
