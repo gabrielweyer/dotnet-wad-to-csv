@@ -9,7 +9,7 @@
 
 | CI | Status | Platform(s) | Framework(s) |
 | --- | --- | --- | --- |
-| [AppVeyor][app-veyor] | [![Build Status][app-veyor-shield]][app-veyor] | `Windows` | `netcoreapp2.2` |
+| [AppVeyor][app-veyor] | [![Build Status][app-veyor-shield]][app-veyor] | `Windows` | `netcoreapp3.1` |
 
 ## Installation
 

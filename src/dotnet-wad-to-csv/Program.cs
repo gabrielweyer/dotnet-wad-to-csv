@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,7 +82,7 @@ namespace DotNet.WadToCsv
                 Console.WriteLine("Exception: {0}", e.GetType());
                 Console.WriteLine("Message: {0}", e.Message);
                 Console.WriteLine("StackTrace:");
-                Console.WriteLine(e.Demystify().StackTrace);
+                Console.WriteLine(e.StackTrace);
             }
             finally
             {

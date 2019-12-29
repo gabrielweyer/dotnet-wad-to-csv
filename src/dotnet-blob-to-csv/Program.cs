@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -107,7 +106,7 @@ namespace DotNet.BlobToCsv
                 Console.WriteLine("Exception: {0}", e.GetType());
                 Console.WriteLine("Message: {0}", e.Message);
                 Console.WriteLine("StackTrace:");
-                Console.WriteLine(e.Demystify().StackTrace);
+                Console.WriteLine(e.StackTrace);
             }
             finally
             {
